@@ -63,7 +63,7 @@
 #define MB
 #define WMB
 
-static void __inline blas_lock(volatile BLASULONG *address){
+static void __inline blas_lock(_Atomic BLASULONG *address){
 
 #ifndef C_MSVC
   int ret;

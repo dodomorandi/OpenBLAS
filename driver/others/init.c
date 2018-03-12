@@ -116,7 +116,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* Private variables */
 typedef struct {
-  unsigned long lock;
+  _Atomic unsigned long lock;
   unsigned int magic;
   unsigned int shmid;
 

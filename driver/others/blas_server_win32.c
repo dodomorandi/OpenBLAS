@@ -56,7 +56,7 @@ typedef struct{
   HANDLE filled;
   HANDLE killed;
 
-  blas_queue_t	*queue;    /* Parameter Pointer */
+  _Atomic blas_queue_t	*queue;    /* Parameter Pointer */
   int		shutdown;  /* server shutdown flag */
 
 } blas_pool_t;

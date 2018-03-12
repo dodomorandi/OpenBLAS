@@ -617,7 +617,7 @@ int blas_thread_init(void){
      exec_blas       ... returns after jobs are finished.
 */
 
-static BLASULONG exec_queue_lock = 0;
+static _Atomic BLASULONG exec_queue_lock = 0;
 
 int exec_blas_async(BLASLONG pos, blas_queue_t *queue){
 
@@ -655,7 +655,18 @@ int exec_blas_async(BLASLONG pos, blas_queue_t *queue){
       if (queue -> mode & BLAS_NODE) {
 
 	do {
-	  while((thread_status[i].node != node || thread_status[i].queue) && (i < blas_num_threads - 1)) i ++;
+	  for(;;)
+	  {
+	    pthread_mutex_lock  (&thread_status[i].lock);
+	    int thread_node = thread_status[i].node;
+	    const blas_queue_t* thread_queue = thread_status[i].queue;
+	    pthread_mutex_unlock  (&thread_status[i].lock);
+
+	    if((thread_node != node || thread_queue) && (i < blas_num_threads - 1))
+	      i ++;
+	    else
+	      break;
+	  }
 
 	  if (i < blas_num_threads - 1) break;
 

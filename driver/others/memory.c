@@ -960,8 +960,8 @@ static BLASULONG base_address      = 0UL;
 static BLASULONG base_address      = BASE_ADDRESS;
 #endif
 
-static volatile struct {
-  BLASULONG lock;
+static struct {
+  _Atomic BLASULONG lock;
   void *addr;
 #if defined(WHEREAMI) && !defined(USE_OPENMP)
   int   pos;
@@ -1250,7 +1250,9 @@ void blas_memory_free(void *free_area){
   // arm: ensure all writes are finished before other thread takes this memory
   WMB;
 
+  blas_lock(&memory[position].lock);
   memory[position].used = 0;
+  blas_unlock(&memory[position].lock);
 #if defined(SMP) && !defined(USE_OPENMP)
   UNLOCK_COMMAND(&alloc_lock);
 #endif

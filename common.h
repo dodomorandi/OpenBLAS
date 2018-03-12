@@ -465,7 +465,7 @@ static inline unsigned long long rpcc(void){
 #endif // !RPCC_DEFINED
 
 #if !defined(BLAS_LOCK_DEFINED) && defined(__GNUC__)
-static void __inline blas_lock(volatile BLASULONG *address){
+static void __inline blas_lock(_Atomic BLASULONG *address){
 
   do {
     while (*address) {YIELDING;};
@@ -656,7 +656,7 @@ int omp_get_num_procs(void) __attribute__ ((weak));
 #endif
 #endif
 
-static __inline void blas_unlock(volatile BLASULONG *address){
+static __inline void blas_unlock(_Atomic BLASULONG *address){
   MB;
   *address = 0;
 }

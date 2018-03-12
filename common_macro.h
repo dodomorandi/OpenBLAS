@@ -2222,7 +2222,7 @@ typedef struct {
 
 #ifdef SMP
   void *common;
-  BLASLONG nthreads;
+  _Atomic BLASLONG nthreads;
 #endif
 
 #ifdef PARAMTEST
