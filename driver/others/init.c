@@ -87,6 +87,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <dlfcn.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdatomic.h>
 
 #if defined(BIGNUMA)
 // max number of nodes as defined in numa.h
@@ -134,7 +135,7 @@ typedef struct {
 static cpu_set_t cpu_orig_mask[4];
 
 static int  cpu_mapping[MAX_CPUS];
-static int  node_mapping[MAX_CPUS * 4];
+static _Atomic int  node_mapping[MAX_CPUS * 4];
 static int  cpu_sub_mapping[MAX_CPUS];
 static int  disable_mapping;
 
@@ -784,7 +785,15 @@ int gotoblas_set_affinity(int pos) {
 
     sched_setaffinity(0, sizeof(cpu_mask), &cpu_mask);
 
-    node_mapping[WhereAmI()] = mynode;
+    {
+      const int node_mapping_index = WhereAmI();
+      int uninitialized_node = -1;
+      if(!atomic_compare_exchange_strong(&node_mapping[node_mapping_index], &uninitialized_node, mynode))
+      {
+	fprintf(stderr, "ERROR: node %d was already mapped to %d (now mapping to %d)\n", node_mapping_index, uninitialized_node, mynode);
+	abort();
+      }
+    }
 
   }
 
@@ -811,6 +820,9 @@ void gotoblas_affinity_init(void) {
   if (initialized) return;
 
   initialized = 1;
+
+  for(size_t node_index = 0; node_index < sizeof(node_mapping) / sizeof(node_mapping[0]); ++node_index)
+    node_mapping[node_index] = -1;
 
   sched_getaffinity(0, sizeof(cpu_orig_mask), &cpu_orig_mask[0]);
 
