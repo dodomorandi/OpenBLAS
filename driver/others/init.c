@@ -675,6 +675,10 @@ static int open_shmem(void) {
       fprintf (stderr, "Setting CPU affinity not possible without shared memory access.\n");
       return (1);
     }
+
+    common -> lock = 0;
+    common -> magic = 0;
+    common -> shmid = 0;
   }
 #ifdef DEBUG
   fprintf(stderr, "Shared Memory id = %x  Address = %p\n", shmid, common);
