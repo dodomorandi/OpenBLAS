@@ -602,7 +602,7 @@ static void setup_mempolicy(void) {
   maxcpu = 0;
 
   for (cpu = 0; cpu < numprocs; cpu ++) {
-    mynode = READ_NODE(common -> cpu_info[cpu_sub_mapping[cpu]]);
+    mynode = READ_NODE(common -> cpu_info[cpu]);
 
     lnodemask |= (1UL << mynode);
 
@@ -728,7 +728,7 @@ static void local_cpu_map(void) {
     if ((common -> cpu_use[cpu] == 0) && (lprocmask[bitmask_idx] & CPUMASK(cpu))) {
 
       common -> cpu_use[cpu] = pshmid;
-      cpu_mapping[mapping] = READ_CPU(common -> cpu_info[cpu]);
+      cpu_mapping[mapping] = READ_CPU(common -> cpu_info[mapping]);
       cpu_sub_mapping[mapping] = cpu;
 
       mapping ++;
@@ -778,7 +778,7 @@ int gotoblas_set_affinity(int pos) {
 
   if (!disable_mapping) {
 
-    mynode = READ_NODE(common -> cpu_info[cpu_sub_mapping[pos]]);
+    mynode = READ_NODE(common -> cpu_info[pos]);
 
 #ifdef DEBUG
     fprintf(stderr, "Giving Affinity[%4d   %3d] --> %3d  My node = %3d\n", getpid(), pos, cpu_mapping[pos], mynode);
@@ -792,7 +792,7 @@ int gotoblas_set_affinity(int pos) {
     {
       const int node_mapping_index = WhereAmI();
       int uninitialized_node = -1;
-      if(!atomic_compare_exchange_strong(&node_mapping[node_mapping_index], &uninitialized_node, mynode))
+      if(!atomic_compare_exchange_strong(&node_mapping[node_mapping_index], &uninitialized_node, mynode) && node_mapping[node_mapping_index] != mynode)
       {
 	fprintf(stderr, "ERROR: node %d was already mapped to %d (now mapping to %d)\n", node_mapping_index, uninitialized_node, mynode);
 	abort();
@@ -973,7 +973,7 @@ void gotoblas_affinity_init(void) {
 
     sched_setaffinity(0, sizeof(cpu_mask), &cpu_mask);
 
-    node_mapping[WhereAmI()] = READ_NODE(common -> cpu_info[cpu_sub_mapping[0]]);
+    node_mapping[WhereAmI()] = READ_NODE(common -> cpu_info[0]);
 
     setup_mempolicy();
 
